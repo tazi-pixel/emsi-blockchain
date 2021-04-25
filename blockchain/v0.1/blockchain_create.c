@@ -1,29 +1,55 @@
 #include "blockchain.h"
 
 /**
-* block_create - creates a new block
-* @prev: previous block
-* @data: data for a new block
-* @data_len: length of @data
-* Return: a block or NULL if failed
+* create_genesis_block - creates genesis block
+* Return: a genesis block or NULL if failed
 */
-block_t *block_create(block_t const *prev, int8_t const *data,
-					  uint32_t data_len)
+block_t *create_genesis_block(void)
 {
-	block_t *block;
-	uint32_t max_len = data_len > BLOCKCHAIN_DATA_MAX ?
-		   BLOCKCHAIN_DATA_MAX : data_len;
+	block_t *genesis;
 
-	
-	block = calloc(1, sizeof(*block));
-	if (!block)
+	genesis = calloc(1, sizeof(*genesis));
+	if (!genesis)
 		return (NULL);
 
-	memcpy(block->data.buffer, data, max_len);
-	block->data.len = max_len;
+	memcpy(genesis->data.buffer, GENESIS_DATA, GENESIS_DATA_LEN);
+	genesis->data.len = GENESIS_DATA_LEN;
+	*(genesis->data.buffer + GENESIS_DATA_LEN) = '\0';
 
-	memcpy(block->info.prev_hash, prev->hash, SHA256_DIGEST_LENGTH);
-	block->info.index = prev->info.index + 1;
-	block->info.timestamp = (uint64_t)time(NULL);
-	return (block);
+	memcpy(genesis->hash, GENESIS_HASH, SHA256_DIGEST_LENGTH);
+	genesis->info.timestamp = GENESIS_TIMESTAMP;
+	return (genesis);
+}
+
+/**
+* blockchain_create - creates a blockchain (Genesis Block)
+* Return: a new blockchain or NULL if failed
+*/
+blockchain_t *blockchain_create(void)
+{
+	blockchain_t *blockchain;
+	block_t *genesis;
+
+	blockchain = malloc(sizeof(*blockchain));
+	if (!blockchain)
+		return (NULL);
+	genesis = create_genesis_block();
+	if (!genesis)
+	{
+		free(blockchain);
+		return (NULL);
+	}
+	blockchain->chain = llist_create(MT_SUPPORT_TRUE);
+	if (!blockchain->chain)
+	{
+		free(blockchain), free(genesis);
+		return (NULL);
+	}
+	if (llist_add_node(blockchain->chain, genesis, ADD_NODE_FRONT) == -1)
+	{
+		llist_destroy(blockchain->chain, 1, NULL);
+		free(blockchain), free(genesis);
+		return (NULL);
+	}
+	return (blockchain);
 }
