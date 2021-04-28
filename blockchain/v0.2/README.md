@@ -1,0 +1,1 @@
+This is the second version of the blockchain implementation. It includes difficulties, handling chacks, and mining on blockchains.
