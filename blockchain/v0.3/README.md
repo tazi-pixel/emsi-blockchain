@@ -1,0 +1,1 @@
+This is the third version of the blockchain implementation. It introduces the transactions concept in a blochain, and how it is mined in order to check the current balance of an account.
